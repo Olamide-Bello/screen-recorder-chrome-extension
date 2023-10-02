@@ -1,0 +1,52 @@
+{
+    "manifest_version": 3,
+    "version": "1",
+    "name": "CaptureCast",
+    "description": "It records the user's screen",
+    "icons": {
+        "128": "logo.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": "logo.png"
+    },
+    "host_permissions": [
+        "http://*/",
+        "https://*/"
+    ],
+    "permissions": [
+        "tabCapture",
+        "offscreen",
+        "scripting",
+        "tabs",
+        "activeTab",
+        "desktopCapture",
+        "storage",
+        "downloads",
+        "contentSettings"
+
+    ],
+    "web_accessible_resources": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "resources": [
+                "index.html",
+                "iframe.html",
+                "/Scripts/popup.js",
+                "/pause.png",
+                "/record.png",
+                "/stop.png",
+                "/trash.png",
+                "/camera2.png",
+                "/audio.png",
+                "/play.png"
+
+            ]
+        }
+    ]
+}
