@@ -1,6 +1,3 @@
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.browserAction.disable()
-})
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab)=> {
     if(changeInfo.status === "complete" && /^http/.test(tab.url)) {

@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "version": "1",
-    "name": "CaptureCast",
+    "name": "HelpMeOut",
     "description": "It records the user's screen",
     "icons": {
         "128": "logo.png"
