@@ -2,7 +2,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
     width: 300px;
-    height: 450px;
+    height: auto;
     background: #FFF;
     box-shadow: 0px 4px 20px 0px rgba(0, 0, 0, 0.10)
 }
@@ -15,6 +15,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 10px;
 }
 
 .popup-header {
@@ -37,6 +38,13 @@ body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
+#exit,
+#setting {
+    cursor: pointer;
+}
+
+
+
 .popup>p {
     font-size: 14px;
     font-weight: 400;
@@ -58,6 +66,29 @@ body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
+.selected {
+    color: #120B48;
+    cursor: pointer;
+}
+
+.selected>p {
+    color: #120B48;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.selected >.monitor path {
+    stroke: #120B48;
+    stroke-width: 2.5;
+}
+
+.selected > .tab path {
+    stroke: #120B48;
+    stroke-width: 2.5; 
+}
+
+
 .options {
     display: flex;
     justify-content: space-between;
@@ -65,6 +96,37 @@ body {
     padding: 14px 14px 14px 16px;
     border: 1px solid #120B48;
     border-radius: 12px;
+    margin-top: 10px
+}
+
+.not-selected {
+    color: #928FAB;
+    cursor: pointer;
+}
+
+.not-selected>p {
+    color: #928FAB;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+/* .not-selected .monitor g {
+    fill: #928FAB;
+} */
+
+.not-selected>.monitor path {
+    stroke: #928FAB;
+    stroke-width: 2.5;
+}
+
+.not-selected > .tab path {
+    stroke: #928FAB;
+    stroke-width: 2.5; 
+}
+
+.removed {
+    display: none;
 }
 
 .opt-dt {
@@ -80,10 +142,26 @@ body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-.opt-btn {
+.chosen {
     width: 32px;
     height: 20px;
     background-color: #120B48;
+    border-radius: 12px;
+    position: relative;
+}
+
+.chosen>img {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.5s ease-in-out ;
+}
+
+.opt-btn {
+    width: 32px;
+    height: 20px;
+    background-color: #928FAB;
     border-radius: 12px;
     position: relative;
 }
@@ -92,7 +170,8 @@ body {
     position: absolute;
     right: 0;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translate(-60%, -50%);
+    transition: transform 0.3s ease-in-out ;
 }
 
 .record-btn {
