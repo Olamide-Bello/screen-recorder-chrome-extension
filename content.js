@@ -1,6 +1,6 @@
 var host2 = document.createElement("div")
 host2.id = "shadow"
-const shadow2 = host2.attachShadow({ mode: "open" })
+var shadow2 = host2.attachShadow({ mode: "open" })
 shadow2.innerHTML = `
 <style>
 :host {
@@ -10,7 +10,7 @@ shadow2.innerHTML = `
 </style>
 `
 
-const audioPlayer = document.createElement("div")
+var audioPlayer = document.createElement("div")
 audioPlayer.id = 'audio-player'
 audioPlayer.style.position = "fixed"
 audioPlayer.style.height = "200px"
@@ -18,14 +18,14 @@ audioPlayer.style.width = "200px"
 audioPlayer.style.bottom = "30px"
 audioPlayer.style.right = "30px"
 audioPlayer.style.zIndex = "999999999999999"
-const micplayer = document.createElement("video")
+var micplayer = document.createElement("video")
 micplayer.style.height = "200px"
 micplayer.style.width = "200px"
 micplayer.style.objectFit = "cover"
 micplayer.style.borderRadius = "200px"
 micplayer.autoplay = true
 audioPlayer.append(micplayer)
-const container = document.createElement("div")
+var container = document.createElement("div")
 container.id = "video_local"
 container.style.position = "fixed"
 container.style.height = "200px"
@@ -34,7 +34,7 @@ container.style.borderRadius = "50%"
 container.style.bottom = "30px"
 container.style.right = "30px"
 container.style.zIndex = "999999999999999"
-const video = document.createElement("video")
+var video = document.createElement("video")
 video.style.height = "200px"
 video.style.width = "200px"
 video.style.objectFit = "cover"
@@ -43,7 +43,7 @@ video.autoplay = true
 container.append(video)
 document.body.append(host2)
 
-const playStream = (stream) => {
+function playStream(stream){
     if (stream.getVideoTracks().length > 0) {
         video.srcObject = stream
         shadow2.appendChild(container)
@@ -54,7 +54,7 @@ const playStream = (stream) => {
     }
 }
 
-const muteCamera = () => {
+function muteCamera(){
     const constraints = {
         video: true
     }
@@ -69,7 +69,7 @@ const muteCamera = () => {
             console.log(error)
         })
 }
-const playCamera = () => {
+function playCamera(){
     const constraints = {
         video: true
     }
@@ -99,15 +99,14 @@ function stopWebCam() {
             stream.getTracks().forEach(track => track.stop())
             video.srcObject = null
             stream = null
-            document.body.removeChild(host2)
-            window.location.reload()
+            host2.remove()
         }).catch((err) => {
             console.log(err.message)
         })
     }
 }
 
-const pauseMic = () => {
+function pauseMic(){
     const constraints = {
         audio: true
     }
@@ -122,7 +121,7 @@ const pauseMic = () => {
             console.log(error)
         })
 }
-const resumeMic = () => {
+function resumeMic(){
     const constraints = {
         audio: true
     }
@@ -161,6 +160,7 @@ async function helpMeOutOnAccessApproved(stream, chromeId) {
     let videoId = "";
     let blobIndex = 0;
     var recorder = null;
+    console.log(chromeId)
 
     const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
         ? "video/webm;codecs=vp9"
@@ -170,58 +170,99 @@ async function helpMeOutOnAccessApproved(stream, chromeId) {
 
     recorder.start(5000);
 
-    recorder.onstart = async () => {
-        const createUser = await fetch(
-            `https://www.cofucan.tech/srce/api/start-recording/?username=${chromeId}`,
-            {
-                method: "POST",
-                body: {},
-            }
-        );
-        const response = await createUser.json();
-        videoId = response.video_id;
+    recorder.onstart = () => {
+        console.log("before")
+        console.log(chromeId)
+        try {
+
+            fetch(
+                `https://www.cofucan.tech/srce/api/start-recording/?username=${chromeId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                        "Vary": "Origin"
+                    },
+                    body: "",
+                    mode: "cors"
+                }
+            ).then((response) => {
+                console.log(response)
+                return response.json()
+            }).then((result) => {
+                console.log(result)
+                videoId = result.video_id
+            })
+        } catch(error) {
+            console.log(error)
+        }
     };
     recorder.ondataavailable = async (e) => {
         blobIndex++;
-        console.log(blobIndex)
+        console.log("going")
         const blob = new Blob([e.data]);
         sendChunkToServer(blobIndex, blob, chromeId, videoId, false);
     };
 
     recorder.onstop = async (e) => {
         const blob = new Blob([e.data]);
-        console.log(blobIndex +1)
-        console.log(blobIndex)
-        await sendChunkToServer(blobIndex + 1, blob, chromeId, videoId, true);
+        const last = true
+        await sendChunkToServer(blobIndex + 1, blob, chromeId, videoId, last);
         stream.getTracks().forEach(async (track) => {
             if (track.readyState === "live") {
                 track.stop();
             }
         });
-        window.open(
-            `https://helpmeout-dev.vercel.app/RecordingReadyPage?videoID=${videoId}`,
-            "_blank"
-        );
+
+        // const reroute = () => {
+        //     window.open(
+        //         `http://localhost:3000/RecordingReadyPage?videoID=${videoId}`,
+        //         "_blank"
+        //     )
+        // }
+        // setTimeout(
+        //     reroute,
+        //     1000
+        // )
     };
     return recorder;
 }
 
 async function sendChunkToServer(blobIndex, blob, chromeId, videoId, last) {
     blobToBase64(blob).then(async (base64) => {
-        const data = await fetch(`https://www.cofucan.tech/srce/api/upload-blob/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                username: chromeId,
-                video_id: videoId,
-                blob_index: blobIndex,
-                blob_object: base64,
-                is_last: last,
-            }),
-        });
-        await data.json();
+        console.log(chromeId)
+        console.log(videoId)
+        console.log(blobIndex)
+        console.log(last)
+        try{
+            const data = await fetch("https://www.cofucan.tech/srce/api/upload-blob/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Vary": "Origin"
+                },
+                body: JSON.stringify({
+                    username: chromeId,
+                    video_id: videoId,
+                    blob_index: blobIndex,
+                    blob_object: base64,
+                    is_last: last,
+                }),
+                mode: "cors"
+            });
+            if (last) {
+                const result = await data.json();
+                console.log("last:",result)
+                window.open(
+                    `http://localhost:3000/RecordingReadyPage?videoID=${videoId}`,
+                    "_blank"
+                )
+            }
+        } catch (error) {
+            console.log(error)
+        }
     });
 }
 
@@ -236,6 +277,8 @@ function resumeRecorderHelpMeOut(recorder) {
 function stopRecorderHelpMeOut(recorder) {
     recorder.stop();
     stopWebCam()
+    host.remove()
+    logoDom.remove()
 
 }
 
@@ -360,8 +403,8 @@ function clearRecordingAndTimer() {
 
 
 
-const logoDom = document.createElement("div")
-const logoShadow = logoDom.attachShadow({ mode: "open" })
+var logoDom = document.createElement("div")
+var logoShadow = logoDom.attachShadow({ mode: "open" })
 logoShadow.innerHTML = `
 <style>
 :logoDom {
@@ -370,7 +413,7 @@ logoShadow.innerHTML = `
 },
 </style>
 `
-const icon = document.createElement("span")
+var icon = document.createElement("span")
 icon.innerHTML = logo
 icon.style.position = "fixed"
 icon.style.left = "0"
@@ -378,8 +421,8 @@ icon.style.bottom = "16px"
 icon.style.display = "none"
 logoShadow.appendChild(icon)
 
-const host = document.createElement("div")
-const shadow = host.attachShadow({ mode: "open" })
+var host = document.createElement("div")
+var shadow = host.attachShadow({ mode: "open" })
 shadow.innerHTML = `
     <style>
         :host {
@@ -390,8 +433,8 @@ shadow.innerHTML = `
     </style>
 `
 
-const panel = document.createElement("div")
-const pauseControl = document.createElement("span");
+var panel = document.createElement("div")
+var pauseControl = document.createElement("span");
 pauseControl.innerHTML = pauseSvg;
 pauseControl.style.width = "40px"
 pauseControl.style.height = "40px"
@@ -400,18 +443,18 @@ pauseControl.style.backgroundColor = "aliceblue"
 pauseControl.style.display = "grid"
 pauseControl.style.placeContent = "center"
 
-const pauseText = document.createElement("span");
+var pauseText = document.createElement("span");
 pauseText.textContent = "pause"
 pauseText.style.lineHeight = "1.7"
 pauseText.style.fontSize = "14px"
-const pauseContainer = document.createElement("div")
+var pauseContainer = document.createElement("div")
 pauseContainer.style.display = "flex"
 pauseContainer.style.flexDirection = "column"
 pauseContainer.style.alignItems = "center"
 pauseContainer.style.justifyContent = "center"
 pauseContainer.style.gap = "10px"
 pauseContainer.append(pauseControl, pauseText)
-const stopControl = document.createElement("span");
+var stopControl = document.createElement("span");
 stopControl.innerHTML = stopSvg;
 stopControl.style.width = "40px"
 stopControl.style.height = "40px"
@@ -419,20 +462,20 @@ stopControl.style.borderRadius = "40px"
 stopControl.style.backgroundColor = "aliceblue"
 stopControl.style.display = "grid"
 stopControl.style.placeContent = "center"
-const stopText = document.createElement("span")
+var stopText = document.createElement("span")
 stopText.textContent = "stop"
 stopText.style.fontSize = "14px"
 stopText.style.lineHeight = "1.7"
-const stopContainer = document.createElement("div")
+var stopContainer = document.createElement("div")
 stopContainer.style.display = "flex"
 stopContainer.style.flexDirection = "column"
 stopContainer.style.alignItems = "center"
 stopContainer.style.justifyContent = "center"
 stopContainer.style.gap = "10px"
 stopContainer.append(stopControl, stopText)
-const trashControl = document.createElement("span");
+var trashControl = document.createElement("span");
 trashControl.innerHTML = trashSvg;
-const trashContainer = document.createElement("div")
+var trashContainer = document.createElement("div")
 trashContainer.style.backgroundColor = "gray"
 trashContainer.style.display = "grid"
 trashContainer.style.placeContent = "center"
@@ -440,7 +483,7 @@ trashContainer.style.height = "40px"
 trashContainer.style.width = "40px"
 trashContainer.style.borderRadius = "40px"
 trashContainer.append(trashControl)
-const videoControl = document.createElement("span");
+var videoControl = document.createElement("span");
 videoControl.innerHTML = videoSvg;
 videoControl.style.width = "40px"
 videoControl.style.height = "40px"
@@ -448,11 +491,11 @@ videoControl.style.borderRadius = "40px"
 videoControl.style.backgroundColor = "aliceblue"
 videoControl.style.display = "grid"
 videoControl.style.placeContent = "center"
-const videoCancel = document.createElement("span");
-const videoText = document.createElement("span")
+var videoCancel = document.createElement("span");
+var videoText = document.createElement("span")
 videoText.style.fontSize = "14px"
 videoText.textContent = "Camera"
-const videoContainer = document.createElement("div")
+var videoContainer = document.createElement("div")
 videoContainer.style.display = "flex"
 videoContainer.style.flexDirection = "column"
 videoContainer.style.alignItems = "center"
@@ -466,7 +509,7 @@ videoCancel.style.borderRadius = "40px"
 videoCancel.style.backgroundColor = "aliceblue"
 videoCancel.style.placeContent = "center"
 videoContainer.append(videoControl, videoCancel, videoText)
-const micControl = document.createElement("span");
+var micControl = document.createElement("span");
 micControl.innerHTML = micSvg
 micControl.style.width = "40px"
 micControl.style.height = "40px"
@@ -474,16 +517,16 @@ micControl.style.borderRadius = "40px"
 micControl.style.backgroundColor = "aliceblue"
 micControl.style.display = "grid"
 micControl.style.placeContent = "center"
-const micText = document.createElement("span")
+var micText = document.createElement("span")
 micText.textContent = "Mic"
 micText.style.fontSize = "14px"
-const micContainer = document.createElement("div")
+var micContainer = document.createElement("div")
 micContainer.style.display = "flex"
 micContainer.style.flexDirection = "column"
 micContainer.style.alignItems = "center"
 micContainer.style.justifyContent = "center"
 micContainer.style.gap = "10px"
-const micCancel = document.createElement("span")
+var micCancel = document.createElement("span")
 micCancel.innerHTML = micInactive
 micCancel.style.width = "40px"
 micCancel.style.height = "40px"
@@ -493,18 +536,18 @@ micCancel.style.display = "grid"
 micCancel.style.placeContent = "center"
 micCancel.style.display = "none"
 micContainer.append(micControl, micCancel, micText)
-const time = document.createElement("div")
-const hoursDisplay = document.createElement("span");
-const dot1 = document.createElement("span");
+var time = document.createElement("div")
+var hoursDisplay = document.createElement("span");
+var dot1 = document.createElement("span");
 dot1.textContent = " : "
-const dot12 = document.createElement("span");
+var dot12 = document.createElement("span");
 dot12.textContent = " : "
-const minutesDisplay = document.createElement("span");
-const secondsDisplay = document.createElement("span");
-const timer = document.createElement("div");
+var minutesDisplay = document.createElement("span");
+var secondsDisplay = document.createElement("span");
+var timer = document.createElement("div");
 time.append(hoursDisplay, dot1, minutesDisplay, dot12, secondsDisplay)
 time.style.display = "flex"
-const redDot = document.createElement("span");
+var redDot = document.createElement("span");
 redDot.style.backgroundColor = "red"
 redDot.style.width = "8px"
 redDot.style.height = "8px"
@@ -521,15 +564,15 @@ timer.style.justifyContent = "center"
 timer.style.fontWeight = "500"
 timer.style.width = "115px"
 timer.style.gap = "5px"
-const hide = document.createElement("div");
-const hideText = document.createElement("p")
+var hide = document.createElement("div");
+var hideText = document.createElement("p")
 hideText.textContent = "Hide"
 hide.style.fontSize = "16px"
 hide.style.fontWeight = "500"
 hide.append(hideText)
 hide.style.display = "flex"
 hide.style.placeContent = "center"
-const flexContainer = document.createElement("div")
+var flexContainer = document.createElement("div")
 flexContainer.append(pauseContainer, stopContainer, videoContainer, micContainer, trashContainer, hide)
 flexContainer.style.color = "#fff"
 flexContainer.style.display = "flex"
@@ -567,6 +610,8 @@ async function control(audio, currentTab, chromeId) {
 
         document.body.append(host)
         dragElement(panel);
+        dragElement(icon)
+        dragElement(container)
 
 
         startTimer(hoursDisplay, minutesDisplay, secondsDisplay);
@@ -673,18 +718,16 @@ function dragElement(elmnt) {
     }
 }
 
-
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.action === "start") {
-        console.log(message.chromeId)
-        const audio = message.audio;
+        console.log(message)
+        const audio = true;
         const currentTab = message.currentTab;
         const chromeId = message.chromeId;
         await control(audio, currentTab, chromeId);
     }
 
     if (message.action === "stop_recording") {
-        console.log("video stopped recording")
         sendResponse(`processed: ${message.action}`)
         if (!recorder) return console.log("no recorder!")
         recorder.stop()
@@ -692,7 +735,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
 
     if (message.action === "start_camera") {
-        console.log(message)
         navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia ||
             navigator.mediaDevices.webkitGetUserMedia ||
             navigator.mediaDevices.mozGetUserMedia;

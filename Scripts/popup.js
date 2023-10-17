@@ -50,24 +50,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     startRec.addEventListener("click", () => {
-        let id = ''
-        chrome.storage.sync.get("userid", function (d) {
-            id = d.userid
-            console.log(id)
-        })
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome.tabs.sendMessage(tabs[0].id,
-                {
-                    action: "start",
-                    chromeId: id,
-                    currentTab: showTab,
-                }, (response) => {
-                    if (!chrome.runtime.lastError) {
-                        console.log(response)
-                    } else {
-                        console.log(chrome.runtime.lastError, "error in line 68")
-                    }
-                })
+
+            chrome.storage.sync.get("userid", function (d) {
+                chrome.tabs.sendMessage(tabs[0].id,
+                    {
+                        action: "start",
+                        chromeId: d.userid,
+                        currentTab: showTab,
+                    }, (response) => {
+                        if (!chrome.runtime.lastError) {
+                            console.log(response)
+                        } else {
+                            console.log(chrome.runtime.lastError, "error in line 68")
+                        }
+                    })
+            })
+
         })
     })
 
@@ -132,5 +131,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
 
-    
+
 })
