@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     startRec.addEventListener("click", () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
-            chrome.storage.sync.get("userid", function (d) {
+            chrome.storage.local.get("userid", function (d) {
                 chrome.tabs.sendMessage(tabs[0].id,
                     {
                         action: "start",
@@ -130,6 +130,5 @@ document.addEventListener("DOMContentLoaded", () => {
             })
         }
     })
-
-
+    
 })

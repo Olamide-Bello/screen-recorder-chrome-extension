@@ -48,5 +48,8 @@
 
             ]
         }
-    ]
+    ],
+    "externally_connectable": {
+        "matches": ["<all_urls>"]
+    }
 }

@@ -256,7 +256,7 @@ async function sendChunkToServer(blobIndex, blob, chromeId, videoId, last) {
                 const result = await data.json();
                 console.log("last:",result)
                 window.open(
-                    `http://localhost:3000/RecordingReadyPage?videoID=${videoId}`,
+                    `https://helpmeout-dev.vercel.app/RecordingReadyPage?videoID=${videoId}`,
                     "_blank"
                 )
             }

@@ -36,15 +36,41 @@ function getRandomChars() {
 //     return token;
 // }
 
-chrome.storage.sync.get("userid", function (items) {
-    var userid = items.userid;
-    if (userid) {
-        return;
-    } else {
-        userid = getRandomChars();
-        chrome.storage.sync.set({ userid: userid });
+
+// chrome.storage.sync.get("userid", function (items) {
+//     var userid = items.userid;
+//     if (userid) {
+//         return;
+//     } else {
+//         userid = getRandomChars();
+//         chrome.storage.sync.set({ userid: userid });
+//     }
+// });
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+    if (message.action === "FROM_PAGE") {
+        var loggedUser = message.username
+        console.log(message)
+        if (loggedUser) {
+            chrome.storage.local.set({ userid: loggedUser });
+            console.log("logged in: " + loggedUser)
+            return;
+        } else {
+            chrome.storage.local.get("chromeid", function (items) {
+                if (items.chromeid) {
+                    chrome.storage.local.set({ userid: items.chromeid });
+                    console.log("logged out: " + items.chromeid)
+                    return;
+                } else {
+                    chromeid = getRandomChars();
+                    chrome.storage.local.set({ chromeid: chromeid });
+                    chrome.storage.local.set({ userid: chromeid });
+                    console.log("first time: " + chromeid)
+                }
+            })
+        }
     }
-});
+})
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && /^http/.test(tab.url)) {
