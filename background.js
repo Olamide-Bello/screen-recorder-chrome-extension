@@ -47,11 +47,23 @@ function getRandomChars() {
 //     }
 // });
 
+// chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.tabs.sendMessage(tabs[0].id, { action: "extension_id", extensionId: chrome.runtime.id }, (response) => {
+//         if (!chrome.runtime.lastError) {
+//             console.log(response)
+//         } else {
+//             console.log(chrome.runtime.lastError, "failed to send extension ID")
+//         }
+//     })
+// })
+
+
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
     if (message.action === "FROM_PAGE") {
         var loggedUser = message.username
         console.log(message)
         if (loggedUser) {
+            console.log(loggedUser)
             chrome.storage.local.set({ userid: loggedUser });
             console.log("logged in: " + loggedUser)
             return;
@@ -73,11 +85,21 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
 })
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    var extensionId = chrome.runtime.id
     if (changeInfo.status === "complete" && /^http/.test(tab.url)) {
         chrome.scripting.executeScript({
             target: { tabId },
             files: ['./content.js']
         }).then(() => {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                chrome.tabs.sendMessage(tabs[0].id, { action: "extension_id", extensionId: extensionId }, (response) => {
+                    if (!chrome.runtime.lastError) {
+                        console.log(response)
+                    } else {
+                        console.log(chrome.runtime.lastError, "failed to send extension ID")
+                    }
+                })
+            })
             console.log("injected")
         }).catch(error => console.log(error, "error in background script"))
     }

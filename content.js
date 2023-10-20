@@ -4,8 +4,11 @@ var shadow2 = host2.attachShadow({ mode: "open" })
 shadow2.innerHTML = `
 <style>
 :host {
-    width: 400px;
-    height: 400px;
+    width: 200px;
+    height: 200px;
+    position: fixed;
+    bottom: 0;
+    right: 0;
 },
 </style>
 `
@@ -110,6 +113,7 @@ function pauseMic(){
     const constraints = {
         audio: true
     }
+    console.log("pause")
     navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
             const audioTrack = stream.getAudioTracks()[0]
@@ -125,6 +129,7 @@ function resumeMic(){
     const constraints = {
         audio: true
     }
+    console.log("resume")
     navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
             const audioTrack = stream.getAudioTracks()[0]
@@ -176,7 +181,7 @@ async function helpMeOutOnAccessApproved(stream, chromeId) {
         try {
 
             fetch(
-                `https://www.cofucan.tech/srce/api/start-recording/?username=${chromeId}`,
+                `https://helpmeout.cofucan.tech/srce/api/start-recording/?username=${chromeId}`,
                 {
                     method: "POST",
                     headers: {
@@ -236,7 +241,7 @@ async function sendChunkToServer(blobIndex, blob, chromeId, videoId, last) {
         console.log(blobIndex)
         console.log(last)
         try{
-            const data = await fetch("https://www.cofucan.tech/srce/api/upload-blob/", {
+            const data = await fetch("https://helpmeout.cofucan.tech/srce/api/upload-blob/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -256,7 +261,7 @@ async function sendChunkToServer(blobIndex, blob, chromeId, videoId, last) {
                 const result = await data.json();
                 console.log("last:",result)
                 window.open(
-                    `https://helpmeout-dev.vercel.app/RecordingReadyPage?videoID=${videoId}`,
+                    `http://localhost3000/RecordingReadyPage?videoID=${videoId}`,
                     "_blank"
                 )
             }
@@ -409,7 +414,9 @@ logoShadow.innerHTML = `
 <style>
 :logoDom {
     width:30px:;
-    height:30px
+    height:30px;
+    position: fixed;
+    bottom: 0;
 },
 </style>
 `
@@ -428,6 +435,8 @@ shadow.innerHTML = `
         :host {
             width: 520px;
             height: 70px;
+            position: fixed;
+            bottom: 0;
         },
         
     </style>
@@ -656,15 +665,16 @@ async function control(audio, currentTab, chromeId) {
             document.body.removeChild(timer);
         });
 
-        console.log(chromeId)
         micControl.onclick = () => {
             pauseMic()
+            console.log("controller")
             micCancel.style.display = "grid"
             micControl.style.display = "none"
         }
 
         micCancel.onclick = () => {
             resumeMic()
+            console.log("controller")
             micControl.style.display = "grid"
             micCancel.style.display = "none"
         }
@@ -718,13 +728,20 @@ function dragElement(elmnt) {
     }
 }
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "extension_id") {
+        console.log(message)
+        localStorage.setItem('extension_id', message.extensionId)
+    }
+})
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "start") {
         console.log(message)
         const audio = true;
         const currentTab = message.currentTab;
         const chromeId = message.chromeId;
-        await control(audio, currentTab, chromeId);
+        control(audio, currentTab, chromeId);
     }
 
     if (message.action === "stop_recording") {

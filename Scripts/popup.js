@@ -7,6 +7,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const showCam = document.getElementById("webcam")
     const showMic = document.getElementById("mic")
 
+    function sendExtId() {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.tabs.sendMessage(tabs[0].id, { action: "extension_id", extensionId: chrome.runtime.id }, (response) => {
+                if (!chrome.runtime.lastError) {
+                    console.log(response)
+                } else {
+                    console.log(chrome.runtime.lastError, "failed to send extension ID")
+                }
+            })
+        })
+    }
+    sendExtId()
+
     exitBtn.addEventListener("click", () => {
         window.close()
     })
@@ -35,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tabBt.classList.add("not-selected")
         monitorBtn.classList.add("selected")
         monitorBtn.classList.remove("not-selected")
-        showTab= false
+        showTab = false
 
     })
 
@@ -45,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
         monitor.classList.add("not-selected")
         tabBtn.classList.add("selected")
         tabBtn.classList.remove("not-selected")
-        showTab= true
+        showTab = true
     })
 
 
@@ -53,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
             chrome.storage.local.get("userid", function (d) {
+                console.log(d.userid)
                 chrome.tabs.sendMessage(tabs[0].id,
                     {
                         action: "start",
@@ -72,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     showCam.addEventListener("click", () => {
-        if(showCam.classList.contains("opt-btn")) {
+        if (showCam.classList.contains("opt-btn")) {
             showCam.classList.add("chosen")
             showCam.classList.remove("opt-btn")
 
@@ -85,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
             })
-        } else if(showCam.classList.contains("opt-btn") === false) {
+        } else if (showCam.classList.contains("opt-btn") === false) {
             showCam.classList.add("opt-btn")
             showCam.classList.remove("chosen")
 
@@ -102,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     showMic.addEventListener("click", () => {
-        if(showMic.classList.contains("opt-btn")) {
+        if (showMic.classList.contains("opt-btn")) {
             showMic.classList.add("chosen")
             showMic.classList.remove("opt-btn")
 
@@ -115,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
             })
-        } else if(showMic.classList.contains("opt-btn") === false) {
+        } else if (showMic.classList.contains("opt-btn") === false) {
             showMic.classList.add("opt-btn")
             showMic.classList.remove("chosen")
 
@@ -130,5 +144,5 @@ document.addEventListener("DOMContentLoaded", () => {
             })
         }
     })
-    
+
 })
